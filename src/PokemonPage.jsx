@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import LoadingSpinner from "./LoadingSpinner";
 import { useApi } from "./useApi";
 import PokemonAbility from "./PokemonAbility";
-import ErrorMessage from "./ErrorMessage";
+import ErrorMessage from "./ErrorMessage"; // just for a new  update
 
 const formatName = (nameWithDash) => nameWithDash.replace("-", " ");
 
