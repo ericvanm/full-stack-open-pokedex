@@ -8,6 +8,8 @@ on:
     branches: [main]
     types: [opened, synchronize]
 
+env:
+  COMMIT_MESSAGES: ${{ toJson(github.event.commits.*.message) }}
 jobs:
   simple_deployment_pipeline:
     runs-on: ubuntu-22.04
@@ -35,7 +37,7 @@ jobs:
           path: playwright-report/
           retention-days: 30
       - name: Trigger deployment render
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && ! contains(env.COMMIT_MESSAGES, '#skip') }}
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
   tag_release:
     needs: [simple_deployment_pipeline]
@@ -44,7 +46,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Bump version and push tag
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && ! contains(env.COMMIT_MESSAGES, '#skip') }}
         uses: anothrNick/github-tag-action@1.73.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
