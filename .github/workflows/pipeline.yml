@@ -31,12 +31,15 @@ jobs:
       - name: Run Playwright tests
         run: npx playwright test
       - name: Notify failure to Discord
+        uses: sarisia/actions-status-discord@v1.15.3
         if: ${{ failure() }}
-        uses: rjstone/discord-webhook-notify@v2.1.1
         with:
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-          severity: error
-          details: Pokedex CI/CD failed during tests or build!
+          title: "failure in Pokedex pipeline"
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          description: Pokedex problem during pipeline !
+          username: GitHub Actions
+          url: "https://github.com/ericvanm/full-stack-open-pokedex"
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -44,22 +47,19 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
-      - name: Test Discord webhook
-        run: |
-          curl -X POST -H "Content-Type: application/json" \
-          -d '{"content":"✅ Webhook test passed!"}' \
-          ${{ secrets.DISCORD_WEBHOOK }}
       - name: Trigger deployment render
         if: ${{ github.event_name == 'push' && ! contains(env.COMMIT_MESSAGES, '#skip') }}
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
       - name: Notify success to Discord
+        uses: sarisia/actions-status-discord@v1.15.3
         if: ${{ success() && github.event_name == 'push' && ! contains(env.COMMIT_MESSAGES, '#skip') }}
-        uses: rjstone/discord-webhook-notify@v2.1.1
         with:
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-          severity: info
-          details: New version of Pokedex deployed !
-
+          title: "deploy Pokedex"
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          description: New version of Pokedex deployed !
+          username: GitHub Actions
+          url: "https://github.com/ericvanm/full-stack-open-pokedex"
   tag_release:
     needs: [simple_deployment_pipeline]
     runs-on: ubuntu-22.04
