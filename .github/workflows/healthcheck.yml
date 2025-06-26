@@ -1,0 +1,30 @@
+name: Health check
+on:
+  schedule:
+    - cron: "0/5 * * * *" # run every five minutes
+jobs:
+  test_schedule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the deployed service URL
+        uses: jtalk/url-health-check-action@v4
+        with:
+          # Check the following URLs one by one sequentially
+          url: https://full-stack-open-pokedex-1626.onrender.com/health
+          # Follow redirects, or just report success on 3xx status codes
+          follow-redirect: false # Optional, defaults to "false"
+          # Fail this action after this many failed attempts
+          max-attempts: 3 # Optional, defaults to 1
+          # Delay between retries
+          retry-delay: 5s # Optional, only applicable to max-attempts > 1
+          # Retry all errors, including 404. This option might trigger curl upgrade.
+
+      - name: Notify failure to Discord
+        uses: sarisia/actions-status-discord@v1.15.3
+        if: ${{ failure() }}
+        with:
+          title: "failure in Pokedex health check"
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          description: Pokedex health check failed !
+          username: GitHub Actions
+          url: "https://github.com/ericvanm/full-stack-open-pokedex"
